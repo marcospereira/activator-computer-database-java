@@ -16,7 +16,7 @@ public class Company extends Model {
 
     private static final long serialVersionUID = 1L;
 
-	@Id
+    @Id
     public Long id;
     
     @Constraints.Required

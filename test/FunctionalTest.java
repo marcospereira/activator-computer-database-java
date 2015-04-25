@@ -11,80 +11,67 @@ public class FunctionalTest {
 
     @Test
     public void redirectHomePage() {
-        running(fakeApplication(), new Runnable() {
-           public void run() {
-               Result result = callAction(controllers.routes.ref.Application.index());
+        running(fakeApplication(), () -> {
+            Result result = route(controllers.routes.Application.index());
 
-               assertThat(status(result)).isEqualTo(SEE_OTHER);
-               assertThat(redirectLocation(result)).isEqualTo("/computers");
-           }
+            assertThat(result.status()).isEqualTo(SEE_OTHER);
+            assertThat(result.header(LOCATION)).isEqualTo("/computers");
         });
     }
     
     @Test
     public void listComputersOnTheFirstPage() {
-        running(fakeApplication(), new Runnable() {
-           public void run() {
-               Result result = callAction(controllers.routes.ref.Application.list(0, "name", "asc", ""));
+        running(fakeApplication(), () -> {
+            Result result = route(controllers.routes.Application.list(0, "name", "asc", ""));
 
-               assertThat(status(result)).isEqualTo(OK);
-               assertThat(contentAsString(result)).contains("574 computers found");
-           }
+            assertThat(result.status()).isEqualTo(OK);
+            assertThat(contentAsString(result)).contains("574 computers found");
         });
     }
     
     @Test
     public void filterComputerByName() {
-        running(fakeApplication(), new Runnable() {
-           public void run() {
-               Result result = callAction(controllers.routes.ref.Application.list(0, "name", "asc", "Apple"));
+        running(fakeApplication(), () -> {
+            Result result = route(controllers.routes.Application.list(0, "name", "asc", "Apple"));
 
-               assertThat(status(result)).isEqualTo(OK);
-               assertThat(contentAsString(result)).contains("13 computers found");
-           }
+            assertThat(result.status()).isEqualTo(OK);
+            assertThat(contentAsString(result)).contains("13 computers found");
         });
     }
     
     @Test
     public void createANewComputer() {
-        running(fakeApplication(), new Runnable() {
-            public void run() {
-                Result result = callAction(controllers.routes.ref.Application.save());
+        running(fakeApplication(), () -> {
+            Result result = route(controllers.routes.Application.save());
 
-                assertThat(status(result)).isEqualTo(BAD_REQUEST);
-                
-                Map<String,String> data = new HashMap<String,String>();
-                data.put("name", "FooBar");
-                data.put("introduced", "badbadbad");
-                data.put("company.id", "1");
-                
-                result = callAction(
-                    controllers.routes.ref.Application.save(), 
-                    fakeRequest().withFormUrlEncodedBody(data)
-                );
-                
-                assertThat(status(result)).isEqualTo(BAD_REQUEST);
-                assertThat(contentAsString(result)).contains("<option value=\"1\" selected=\"selected\">Apple Inc.</option>");
-                assertThat(contentAsString(result)).contains("<input type=\"date\" id=\"introduced\" name=\"introduced\" value=\"badbadbad\" />");
-                assertThat(contentAsString(result)).contains("<input type=\"text\" id=\"name\" name=\"name\" value=\"FooBar\" />");
-                
-                data.put("introduced", "2011-12-24");
-                
-                result = callAction(
-                    controllers.routes.ref.Application.save(), 
-                    fakeRequest().withFormUrlEncodedBody(data)
-                );
-                
-                assertThat(status(result)).isEqualTo(SEE_OTHER);
-                assertThat(redirectLocation(result)).isEqualTo("/computers");
-                assertThat(flash(result).get("success")).isEqualTo("Computer FooBar has been created");
-                
-                result = callAction(controllers.routes.ref.Application.list(0, "name", "asc", "FooBar"));
-                assertThat(status(result)).isEqualTo(OK);
-                assertThat(contentAsString(result)).contains("One computer found");
-                
-            }
+            assertThat(result.status()).isEqualTo(BAD_REQUEST);
+
+            Map<String,String> data = new HashMap<>();
+            data.put("name", "FooBar");
+            data.put("introduced", "badbadbad");
+            data.put("company.id", "1");
+
+            Http.RequestBuilder request1 = fakeRequest(controllers.routes.Application.save());
+            result = route(request1.bodyForm(data));
+
+            assertThat(result.status()).isEqualTo(BAD_REQUEST);
+            assertThat(contentAsString(result)).contains("<option value=\"1\" selected=\"selected\">Apple Inc.</option>");
+            assertThat(contentAsString(result)).contains("<input type=\"date\" id=\"introduced\" name=\"introduced\" value=\"badbadbad\" />");
+            assertThat(contentAsString(result)).contains("<input type=\"text\" id=\"name\" name=\"name\" value=\"FooBar\" />");
+
+            data.put("introduced", "2011-12-24");
+
+            Http.RequestBuilder request2 = fakeRequest(controllers.routes.Application.save());
+            result = route(request2.bodyForm(data));
+
+            assertThat(result.status()).isEqualTo(SEE_OTHER);
+            assertThat(result.header(LOCATION)).isEqualTo("/computers");
+            assertThat(result.flash().get("success")).isEqualTo("Computer FooBar has been created");
+
+            result = route(controllers.routes.Application.list(0, "name", "asc", "FooBar"));
+            assertThat(result.status()).isEqualTo(OK);
+            assertThat(contentAsString(result)).contains("One computer found");
+
         });
     }
-    
 }

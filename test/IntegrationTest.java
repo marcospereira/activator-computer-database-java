@@ -15,7 +15,7 @@ public class IntegrationTest {
         running(testServer(3333, fakeApplication(inMemoryDatabase())), HTMLUNIT, new Callback<TestBrowser>() {
             public void invoke(TestBrowser browser) {
                 browser.goTo("http://localhost:3333");
-                
+
                 assertThat(browser.$("header h1").first().getText()).isEqualTo("Play sample application — Computer database");
                 assertThat(browser.$("section h1").first().getText()).isEqualTo("574 computers found");
 
@@ -63,9 +63,7 @@ public class IntegrationTest {
                 browser.$("#searchsubmit").click();
 
                 assertThat(browser.$("section h1").first().getText()).isEqualTo("12 computers found");
-                
             }
         });
     }
-  
 }
